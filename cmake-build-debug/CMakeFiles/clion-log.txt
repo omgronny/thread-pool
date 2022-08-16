@@ -1,0 +1,4 @@
+/opt/clion-2021.3.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion-2021.3.4/bin/ninja/linux/ninja -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -G Ninja /home/omgronny/d/summer2022/thread-pool
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/omgronny/d/summer2022/thread-pool/cmake-build-debug
