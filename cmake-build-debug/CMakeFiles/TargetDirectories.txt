@@ -1,3 +1,0 @@
-/home/omgronny/d/summer2022/thread-pool/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/omgronny/d/summer2022/thread-pool/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/omgronny/d/summer2022/thread-pool/cmake-build-debug/CMakeFiles/thread_pool.dir
