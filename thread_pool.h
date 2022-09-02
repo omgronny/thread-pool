@@ -45,12 +45,8 @@ public:
 
         uint64_t idx = this->next_task_id++;
 
-        std::cout << "3 - " << std::this_thread::get_id() << std::endl;
-
         std::unique_lock<hpx::mutex> q_lock(this->q_mutex);
         q.emplace(std::async(std::launch::deferred, func, args...), idx);
-
-        std::cout << "4 - " << std::this_thread::get_id() << std::endl;
 
         q_cv.notify_one();
         this->stop_waiting_q = true;

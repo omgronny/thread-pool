@@ -13,7 +13,6 @@ void sum(int64_t& ans, std::vector<int>& arr) {
     for (int i : arr) {
         ans += i;
     }
-    //std::cout << "end task sum" << std::endl;
      std::cout << ans << std::endl;
 }
 
@@ -21,7 +20,6 @@ void sub(int64_t& ans, std::vector<int>& arr) {
     for (int i : arr) {
         ans -= i;
     }
-    //std::cout << "end task sub" << std::endl;
      std::cout << ans << std::endl;
 }
 
@@ -72,11 +70,7 @@ int hpx_main(int argc, char* argv[]) {
     t1.join();
     t2.join();
 
-    std::cout << "joined" << std::endl;
-
     tp.wait_all();
-
-    std::cout << "waited" << std::endl;
 
     auto end = clock();
 

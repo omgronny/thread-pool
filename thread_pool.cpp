@@ -16,16 +16,12 @@ void thread_pool::run() {
 
     while (!this->is_quite) {
 
-        std::cout << "1 - " << std::this_thread::get_id() << std::endl;
-
         // берем задачу
         std::unique_lock<hpx::mutex> q_lock(this->q_mutex);
         q_cv.wait(q_lock, [&]() -> bool {
            return this->stop_waiting_q || this->is_quite || this->q.empty();
         });
         this->stop_waiting_q = false;
-
-        std::cout << "2 - " << std::this_thread::get_id() << std::endl;
 
         if (this->is_quite) {
             return;
