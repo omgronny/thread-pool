@@ -16,24 +16,37 @@ void thread_pool::run() {
 
     while (!this->is_quite) {
 
+        std::cout << "1 - " << std::this_thread::get_id() << std::endl;
+
         // берем задачу
-        std::unique_lock<std::mutex> lock(q_mutex);
-        q_cv.wait(lock, [&]()->bool {
-           return this->is_quite || !this->q.empty();
+        std::unique_lock<hpx::mutex> q_lock(this->q_mutex);
+        q_cv.wait(q_lock, [&]() -> bool {
+           return this->stop_waiting_q || this->is_quite || this->q.empty();
         });
+        this->stop_waiting_q = false;
+
+        std::cout << "2 - " << std::this_thread::get_id() << std::endl;
+
+        if (this->is_quite) {
+            return;
+        }
 
         if (!this->q.empty()) {
+
             auto [task, idx] = std::move(q.front());
             q.pop();
-            lock.unlock();
+
+            q_lock.unlock();
 
             // выполняем
             task.get();
 
             // кладем в выполненные
-            std::lock_guard<std::mutex> lockGuard(completed_task_ids_mutex);
+            std::unique_lock<hpx::mutex> lockGuard(ct_mutex);
             completed_task_ids.insert(idx);
-            completed_task_ids_cv.notify_all();
+
+            ct_cv.notify_all();
+            this->stop_waiting_ct = true;
         }
 
     }
@@ -45,38 +58,49 @@ bool thread_pool::unsafe_calculated(uint64_t task_id) {
 }
 
 bool thread_pool::calculated(uint64_t task_id) {
-    std::lock_guard<std::mutex> lockGuard(completed_task_ids_mutex);
+    std::lock_guard<hpx::mutex> lockGuard(ct_mutex);
     return unsafe_calculated(task_id);
 }
 
 void thread_pool::wait(uint64_t task_id) {
 
-    std::unique_lock<std::mutex> lock(completed_task_ids_mutex);
+    while (true) {
 
-    completed_task_ids_cv.wait(lock, [&]() -> bool {
-        return unsafe_calculated(task_id);
-    });
+        std::unique_lock<hpx::mutex> lock(ct_mutex);
 
+        ct_cv.wait(lock, [&]() -> bool {
+            return this->stop_waiting_ct || this->is_quite || this->q.empty();
+        });
+        this->stop_waiting_ct = false;
+
+        if (unsafe_calculated(task_id)) {
+            return;
+        } else {
+            lock.unlock();
+        }
+
+    }
+    
 }
 
 void thread_pool::wait_all() {
 
-    std::unique_lock<std::mutex> lock(this->completed_task_ids_mutex);
+    std::unique_lock<hpx::mutex> lock(this->ct_mutex);
 
-    completed_task_ids_cv.wait(lock, [this]()->bool {
-        std::lock_guard<std::mutex> task_lock(this->q_mutex);
-        return q.empty() && this->next_task_id == this->completed_task_ids.size();
+    ct_cv.wait(lock, [this]()->bool {
+        return this->stop_waiting_ct && this->next_task_id != this->completed_task_ids.size();
     });
-
+    this->stop_waiting_ct = false;
+    
 }
 
 thread_pool::~thread_pool() {
 
-    wait_all();
     this->is_quite = true;
 
     for (auto& x : threads) {
         q_cv.notify_all(); // зачем?
+        this->stop_waiting_q = true;
         x.join();
     }
 

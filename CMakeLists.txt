@@ -3,6 +3,8 @@ project(thread_pool)
 
 set(CMAKE_CXX_STANDARD 20)
 
+find_package(HPX REQUIRED)
+
 add_executable(thread_pool
         main.cpp
         thread_pool.cpp
@@ -10,3 +12,4 @@ add_executable(thread_pool
         )
 
 
+target_link_libraries(thread_pool HPX::hpx HPX::wrap_main HPX::iostreams_component)
